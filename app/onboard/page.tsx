@@ -28,6 +28,8 @@ export default function OnboardPage() {
   const [featureRequest, setFeatureRequest] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [welcome, setWelcome] = useState(false);
+  const [goingToDashboard, setGoingToDashboard] = useState(false);
 
   function togglePref(id: string) {
     setPreferences((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -71,15 +73,70 @@ export default function OnboardPage() {
         setError(data.error || "Something went wrong.");
         return;
       }
-      await signIn("credentials", {
-        email: email.trim(),
-        password,
-        callbackUrl: "/app",
-        redirect: true,
-      });
+      setWelcome(true);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleGoToDashboard() {
+    setGoingToDashboard(true);
+    await signIn("credentials", {
+      email: email.trim(),
+      password,
+      callbackUrl: "/app",
+      redirect: true,
+    });
+  }
+
+  if (welcome) {
+    return (
+      <div className="relative min-h-screen overflow-hidden bg-neutral-950">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute -left-1/2 -top-1/2 h-full w-full rounded-full bg-amber-500/5 blur-3xl" style={{ animation: "pulse-slow 3s ease-in-out infinite" }} />
+          <div className="absolute -bottom-1/2 -right-1/2 h-full w-full rounded-full bg-emerald-500/5 blur-3xl" style={{ animation: "pulse-slow 3s ease-in-out 1s infinite" }} />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,neutral_900_1px,transparent_1px),linear-gradient(to_bottom,neutral_900_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-40" />
+        </div>
+
+        <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center">
+          {/* Success icon + animation */}
+          <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 shadow-[0_0_40px_rgba(245,158,11,0.15)]">
+            <svg className="h-10 w-10 text-amber-400" style={{ animation: "draw-check 0.5s ease-out both" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            You&apos;re in.
+          </h1>
+          <p className="mt-3 max-w-md text-lg text-neutral-300">
+            Welcome to Executive AI. Your assistant is being tailored to how you work.
+          </p>
+
+          <div className="mt-10 flex max-w-sm flex-col gap-4 rounded-xl border border-neutral-800 bg-neutral-900/80 px-6 py-5 text-left">
+            <p className="text-sm text-neutral-300">
+              <span className="font-medium text-white">Our team is configuring your account</span> to your personal needs and the preferences you shared.
+            </p>
+            <p className="text-sm text-neutral-400">
+              <span className="font-medium text-amber-400/90">ETA:</span> Your setup will be ready within <strong className="text-neutral-200">24–48 hours</strong>.
+            </p>
+            <p className="text-sm text-neutral-400">
+              We&apos;ll reach out at <strong className="text-neutral-200">{email}</strong> with a few quick setup questions so everything works exactly how you want it.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoToDashboard}
+            disabled={goingToDashboard}
+            className="mt-10 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black shadow-lg transition hover:bg-neutral-200 disabled:opacity-70"
+          >
+            {goingToDashboard ? "Taking you there…" : "Go to your dashboard"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

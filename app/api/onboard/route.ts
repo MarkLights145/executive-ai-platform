@@ -65,7 +65,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error("onboard error", e);
+    const message = e instanceof Error ? e.message : String(e);
+    console.error("onboard error", message, e);
     return NextResponse.json({ error: "Onboarding failed." }, { status: 500 });
   }
 }
