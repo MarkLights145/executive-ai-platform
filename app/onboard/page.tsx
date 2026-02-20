@@ -34,6 +34,7 @@ export default function OnboardPage() {
   }
 
   function validateStep2(): string | null {
+    if (!name?.trim()) return "Name is required.";
     const e = email.trim();
     if (!e) return "Email is required.";
     if (!EMAIL_RE.test(e)) return "Please enter a valid email address.";
@@ -139,6 +140,11 @@ export default function OnboardPage() {
             <>
               <h2 className="text-lg font-semibold text-white">Your details</h2>
               <p className="mt-1 text-sm text-neutral-400">Name, email, and a secure password for your account.</p>
+              {error && (
+                <p className="mt-4 rounded-lg border border-red-500 bg-red-500/20 px-4 py-3 text-sm font-medium text-red-300" role="alert">
+                  {error}
+                </p>
+              )}
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-300">Name</label>
@@ -270,8 +276,11 @@ export default function OnboardPage() {
                   </div>
                 )}
               </dl>
-              {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
             </>
+          )}
+
+          {error && (
+            <p className="mt-6 text-sm text-red-400" role="alert">{error}</p>
           )}
 
           <div className="mt-8 flex justify-between">
@@ -287,12 +296,19 @@ export default function OnboardPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (step === 2) {
-                    const err = validateStep2();
-                    if (err) { setError(err); return; }
+                  try {
                     setError("");
+                    if (step === 2) {
+                      const err = validateStep2();
+                      if (err) {
+                        setError(err);
+                        return;
+                      }
+                    }
+                    setStep((s) => s + 1);
+                  } catch (e) {
+                    setError("Something went wrong. Please check your entries and try again.");
                   }
-                  setStep((s) => s + 1);
                 }}
                 className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-neutral-200"
               >
