@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  users     User[]
+}
+
+model User {
+  id                     String   @id @default(cuid())
+  email                  String   @unique
+  name                   String?
+  passwordHash           String?  // for credentials login
+  role                   String   @default("USER")
+  organizationId         String
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  telegramUserId         String?
+  microsoftConnected     Boolean  @default(false)
+  advisoryMode           Boolean  @default(true)
+  onboardingPreferences  Json?    // checkboxes: inbox triage, calendar, etc.
+  featureRequest         String?
+  createdAt              DateTime @default(now())
+  rundownSessions        RundownSession[]
+  emailStates            EmailState[]
+}
+
+model RundownSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         String   @default("active")
+  resumePointer  String?
+  createdAt      DateTime @default(now())
+}
+
+model EmailState {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  status    String   @default("pending")
+}
