@@ -75,7 +75,7 @@ export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
     setTesting(true);
     setResult(null);
     try {
-      const res = await fetch("/api/execution/run", {
+      const createRes = await fetch("/api/execution/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -85,12 +85,35 @@ export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
           messageText: "ping",
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setResult({ error: data.error ?? "Connection test failed" });
+      const createData = await createRes.json().catch(() => ({}));
+      if (!createRes.ok) {
+        setResult({ error: createData.error ?? "Failed to create job" });
         return;
       }
-      setResult({ outputText: data.outputText ?? "(no output)" });
+      const jobId = createData.jobId;
+      if (!jobId) {
+        setResult({ error: "No jobId returned" });
+        return;
+      }
+      const maxAttempts = 10; // 10s total to meet Phase 1.5 exit criteria
+      for (let i = 0; i < maxAttempts; i++) {
+        const jobRes = await fetch(`/api/execution/jobs/${jobId}`);
+        const jobData = await jobRes.json().catch(() => ({}));
+        if (!jobRes.ok) {
+          setResult({ error: jobData.error ?? "Failed to get job status" });
+          return;
+        }
+        if (jobData.status === "DONE") {
+          setResult({ outputText: jobData.resultText ?? "(no output)" });
+          return;
+        }
+        if (jobData.status === "ERROR") {
+          setResult({ error: jobData.errorText ?? "Job failed" });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      setResult({ error: "Timed out waiting for job" });
     } finally {
       setTesting(false);
     }
