@@ -19,6 +19,7 @@ model Organization {
   inviteCodes     InviteCode[]
   agentInstances  AgentInstance[]
   executionJobs   ExecutionJob[]
+  escalations     Escalation[]
 }
 
 enum AgentAuthType {
@@ -147,4 +148,21 @@ model EmailState {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   messageId String
   status    String   @default("pending")
+}
+
+enum EscalationStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model Escalation {
+  id          String           @id @default(cuid())
+  orgId       String
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId      String           // user who sent the off-script message
+  messageText String
+  reason      String           @default("OFF_SCRIPT") // OFF_SCRIPT or other
+  status      EscalationStatus @default(OPEN)
+  createdAt   DateTime         @default(now())
 }

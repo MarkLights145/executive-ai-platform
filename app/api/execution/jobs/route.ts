@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
+import { isAllowedUserMessage } from "@/app/lib/rolePolicy";
 
 type CreateJobBody = {
   orgId: string;
@@ -10,18 +11,17 @@ type CreateJobBody = {
   messageText: string;
 };
 
+type SessionUser = { id?: string; role?: string; organizationId?: string };
+
 /**
- * POST /api/execution/jobs — Create execution job (admin only). Returns { jobId }.
+ * POST /api/execution/jobs — Create execution job. Admin: any message. User: only status/ETA/progress; else escalation.
  */
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  const user = session?.user as { role?: string; organizationId?: string } | undefined;
+  const user = session?.user as SessionUser | undefined;
 
   if (!user?.organizationId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden: admin only" }, { status: 403 });
   }
 
   let body: CreateJobBody;
@@ -43,6 +43,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden: org mismatch" }, { status: 403 });
   }
 
+  const isAdmin = user.role === "ADMIN";
+  if (!isAdmin) {
+    if (!isAllowedUserMessage(messageText)) {
+      const escalation = await prisma.escalation.create({
+        data: {
+          orgId: user.organizationId,
+          userId: user.id ?? "",
+          messageText,
+          reason: "OFF_SCRIPT",
+          status: "OPEN",
+        },
+        select: { id: true },
+      });
+      return NextResponse.json(
+        { error: "Message escalated", escalationId: escalation.id },
+        { status: 403 }
+      );
+    }
+  }
+
   const instance = await prisma.agentInstance.findFirst({
     where: { id: agentInstanceId, orgId, enabled: true },
   });
@@ -54,7 +74,7 @@ export async function POST(req: Request) {
     data: {
       orgId,
       agentInstanceId,
-      actorRole: actorRole?.trim() || "ADMIN",
+      actorRole: (actorRole?.trim() || (isAdmin ? "ADMIN" : "USER")),
       messageText,
       status: "PENDING",
     },
