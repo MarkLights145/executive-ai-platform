@@ -1,13 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { getAppSession } from "@/app/lib/auth";
 import { AppLayout } from "./components/AppLayout";
 import { BookmarkPrompt } from "./components/BookmarkPrompt";
 
 export default async function AppDashboardPage() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as
-    | { email?: string | null; role?: string; organizationName?: string | null }
-    | undefined;
+  const { user, isProgrammer } = await getAppSession();
 
   return (
     <AppLayout
@@ -16,9 +12,16 @@ export default async function AppDashboardPage() {
         role: user?.role,
         organizationName: user?.organizationName,
       }}
+      isProgrammer={isProgrammer}
     >
       <div className="min-h-full bg-gradient-to-b from-neutral-50 to-white">
         <div className="mx-auto max-w-5xl px-6 py-8 sm:py-10">
+          {/* Temporary debug: only for mamiller561@gmail.com — remove after Programmers tab is confirmed */}
+          {user?.email?.toLowerCase() === "mamiller561@gmail.com" && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+              Debug: session email = &quot;{user.email}&quot; → isProgrammer = {isProgrammer ? "true" : "false"}
+            </div>
+          )}
           <div className="mb-8">
             <BookmarkPrompt />
           </div>

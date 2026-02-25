@@ -1,12 +1,8 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { getAppSession } from "@/app/lib/auth";
 import { AppLayout } from "../components/AppLayout";
 
 export default async function SettingsPage() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as
-    | { email?: string | null; role?: string; organizationName?: string | null }
-    | undefined;
+  const { user, isProgrammer } = await getAppSession();
 
   return (
     <AppLayout
@@ -15,6 +11,7 @@ export default async function SettingsPage() {
         role: user?.role,
         organizationName: user?.organizationName,
       }}
+      isProgrammer={isProgrammer}
     >
       <div className="p-8">
         <h1 className="text-2xl font-semibold text-neutral-900">Settings</h1>

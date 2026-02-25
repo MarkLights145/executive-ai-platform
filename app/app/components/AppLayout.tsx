@@ -10,9 +10,11 @@ export type AppLayoutUser = {
 
 export function AppLayout({
   user,
+  isProgrammer = false,
   children,
 }: {
   user: AppLayoutUser;
+  isProgrammer?: boolean;
   children: ReactNode;
 }) {
   const isAdmin = user.role === "ADMIN";
@@ -21,7 +23,7 @@ export function AppLayout({
     <div className="flex min-h-screen flex-col bg-neutral-100">
       <Topbar email={user.email} />
       <div className="flex flex-1">
-        <Sidebar isAdmin={isAdmin} />
+        <Sidebar isAdmin={isAdmin} isProgrammer={isProgrammer} userEmail={user.email} />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
