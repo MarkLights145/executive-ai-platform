@@ -12,6 +12,7 @@ type AgentInstance = {
 
 export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
   const [instances, setInstances] = useState<AgentInstance[]>([]);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<{ outputText?: string; error?: string } | null>(null);
@@ -24,8 +25,11 @@ export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) {
-          if (Array.isArray(data.instances)) setInstances(data.instances);
-          else setInstances([]);
+          const list = Array.isArray(data.instances) ? data.instances : [];
+          setInstances(list);
+          setSelectedInstanceId((prev) =>
+            list.some((i: AgentInstance) => i.id === prev) ? prev : list[0]?.id ?? null
+          );
         }
       })
       .catch(() => {
@@ -67,7 +71,7 @@ export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
   }
 
   async function handleTestConnection() {
-    const agent = instances[0];
+    const agent = instances.find((i) => i.id === selectedInstanceId) ?? instances[0];
     if (!agent) {
       setResult({ error: "Add an agent instance first." });
       return;
@@ -173,14 +177,33 @@ export function ExecutionPlaneCard({ orgId }: { orgId: string }) {
         </form>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-neutral-300">
-            <span className="font-medium text-neutral-500">Instance name: </span>
-            {firstInstance.name}
-          </p>
-          <p className="text-sm text-neutral-300">
-            <span className="font-medium text-neutral-500">Base URL: </span>
-            {firstInstance.baseUrl}
-          </p>
+          {instances.length > 1 ? (
+            <div>
+              <label className="block text-xs font-medium text-neutral-500">Agent instance</label>
+              <select
+                value={selectedInstanceId ?? ""}
+                onChange={(e) => setSelectedInstanceId(e.target.value || null)}
+                className="mt-1 w-full rounded border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-white"
+              >
+                {instances.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-neutral-300">
+                <span className="font-medium text-neutral-500">Instance name: </span>
+                {firstInstance.name}
+              </p>
+              <p className="text-sm text-neutral-300">
+                <span className="font-medium text-neutral-500">Base URL: </span>
+                {firstInstance.baseUrl}
+              </p>
+            </>
+          )}
           <button
             type="button"
             onClick={handleTestConnection}
