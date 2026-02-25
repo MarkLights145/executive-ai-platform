@@ -1,10 +1,16 @@
 import Link from "next/link";
 
-const navItems = [
+const navItemsAll = [
   { href: "/app", label: "Dashboard" },
-  { href: "/app/todo", label: "To Do" },
+  { href: "/app/todo", label: "To-Do" },
   { href: "/app/projects", label: "Projects" },
   { href: "/app/email-rundown", label: "Email Rundown" },
+] as const;
+
+const navItemsUser = [
+  { href: "/app", label: "Dashboard" },
+  { href: "/app/todo", label: "To-Do" },
+  { href: "/app/projects", label: "Projects" },
 ] as const;
 
 const PROGRAMMER_EMAIL_DEFAULT = "mamiller561@gmail.com";
@@ -20,6 +26,8 @@ export function Sidebar({
 }) {
   const showProgrammers =
     isProgrammer || (userEmail?.trim().toLowerCase() === PROGRAMMER_EMAIL_DEFAULT);
+
+  const navItems = isAdmin ? navItemsAll : navItemsUser;
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50/80">

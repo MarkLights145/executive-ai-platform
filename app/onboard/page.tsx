@@ -14,9 +14,15 @@ const PREFERENCES = [
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 10;
+const CODE_LENGTH = 8;
 
 export default function OnboardPage() {
   const [step, setStep] = useState(1);
+  const [useWithCode, setUseWithCode] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const [codeValidated, setCodeValidated] = useState(false);
+  const [organizationNameFromCode, setOrganizationNameFromCode] = useState<string | null>(null);
+  const [validatingCode, setValidatingCode] = useState(false);
   const [kind, setKind] = useState<"individual" | "organization">("individual");
   const [organizationName, setOrganizationName] = useState("");
   const [name, setName] = useState("");
@@ -45,6 +51,28 @@ export default function OnboardPage() {
     return null;
   }
 
+  async function validateCode() {
+    const code = inviteCodeInput.trim().toUpperCase();
+    if (!code) {
+      setError("Enter your invite code.");
+      return;
+    }
+    setError("");
+    setValidatingCode(true);
+    try {
+      const res = await fetch(`/api/invite-codes?code=${encodeURIComponent(code)}`);
+      const data = await res.json().catch(() => ({}));
+      if (data.valid && data.organizationName) {
+        setCodeValidated(true);
+        setOrganizationNameFromCode(data.organizationName);
+      } else {
+        setError(data.error || "Invalid or expired code.");
+      }
+    } finally {
+      setValidatingCode(false);
+    }
+  }
+
   async function handleSubmit() {
     setError("");
     const step2Err = validateStep2();
@@ -54,19 +82,24 @@ export default function OnboardPage() {
     }
     setSubmitting(true);
     try {
+      const body: Record<string, unknown> = {
+        name,
+        email: email.trim(),
+        password,
+        telegramUsername: telegramUsername || undefined,
+      };
+      if (codeValidated && inviteCodeInput.trim()) {
+        body.inviteCode = inviteCodeInput.trim().toUpperCase();
+      } else {
+        body.kind = kind;
+        body.organizationName = kind === "organization" ? organizationName : undefined;
+        body.preferences = preferences.length ? preferences : undefined;
+        body.featureRequest = featureRequest || undefined;
+      }
       const res = await fetch("/api/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind,
-          organizationName: kind === "organization" ? organizationName : undefined,
-          name,
-          email: email.trim(),
-          password,
-          telegramUsername: telegramUsername || undefined,
-          preferences: preferences.length ? preferences : undefined,
-          featureRequest: featureRequest || undefined,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -150,10 +183,141 @@ export default function OnboardPage() {
         </div>
 
         <div className="rounded-xl border border-neutral-800 bg-neutral-900/80 p-6">
-          {step === 1 && (
+          {useWithCode && !codeValidated && (
+            <>
+              <h2 className="text-lg font-semibold text-white">Sign up with invite code</h2>
+              <p className="mt-1 text-sm text-neutral-400">Enter the code your admin gave you to join their organization.</p>
+              {error && (
+                <p className="mt-4 rounded-lg border border-red-500 bg-red-500/20 px-4 py-3 text-sm font-medium text-red-300" role="alert">
+                  {error}
+                </p>
+              )}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-neutral-300">Invite code</label>
+                <input
+                  type="text"
+                  value={inviteCodeInput}
+                  onChange={(e) => setInviteCodeInput(e.target.value.toUpperCase())}
+                  placeholder="e.g. ABC12XYZ"
+                  className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 font-mono text-white placeholder-neutral-500 uppercase"
+                  maxLength={CODE_LENGTH}
+                />
+                <button
+                  type="button"
+                  onClick={validateCode}
+                  disabled={validatingCode}
+                  className="mt-4 w-full rounded-lg bg-white px-4 py-3 text-sm font-medium text-black hover:bg-neutral-200 disabled:opacity-50"
+                >
+                  {validatingCode ? "Checking…" : "Continue"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setUseWithCode(false); setError(""); setInviteCodeInput(""); }}
+                  className="mt-3 w-full rounded-lg border border-neutral-600 px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-neutral-800"
+                >
+                  Back to create account
+                </button>
+              </div>
+            </>
+          )}
+
+          {useWithCode && codeValidated && (
+            <>
+              <h2 className="text-lg font-semibold text-white">Create your account</h2>
+              <p className="mt-1 text-sm text-neutral-400">You're joining {organizationNameFromCode}. Enter your details.</p>
+              {error && (
+                <p className="mt-4 rounded-lg border border-red-500 bg-red-500/20 px-4 py-3 text-sm font-medium text-red-300" role="alert">
+                  {error}
+                </p>
+              )}
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300">Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
+                    placeholder="Jane Smith"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
+                    placeholder="jane@company.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={MIN_PASSWORD_LENGTH}
+                    className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
+                    placeholder="At least 10 characters"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300">Confirm password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    minLength={MIN_PASSWORD_LENGTH}
+                    className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
+                    placeholder="Re-enter your password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300">Telegram username (optional)</label>
+                  <input
+                    type="text"
+                    value={telegramUsername}
+                    onChange={(e) => setTelegramUsername(e.target.value)}
+                    placeholder="@username"
+                    className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="w-full rounded-lg bg-white px-4 py-3 text-sm font-medium text-black hover:bg-neutral-200 disabled:opacity-50"
+                >
+                  {submitting ? "Creating account…" : "Create account"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCodeValidated(false); setInviteCodeInput(""); setOrganizationNameFromCode(null); }}
+                  className="mt-2 w-full rounded-lg border border-neutral-600 px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-neutral-800"
+                >
+                  Use a different code
+                </button>
+              </div>
+            </>
+          )}
+
+          {!useWithCode && step === 1 && (
             <>
               <h2 className="text-lg font-semibold text-white">Individual or organization?</h2>
-              <p className="mt-1 text-sm text-neutral-400">We’ll create the right setup for you.</p>
+              <p className="mt-1 text-sm text-neutral-400">We'll create the right setup for you.</p>
+              <p className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setUseWithCode(true)}
+                  className="text-sm text-amber-400 hover:text-amber-300 underline"
+                >
+                  Sign up with invite code
+                </button>
+                <span className="ml-2 text-sm text-neutral-500">Have a code from your admin?</span>
+              </p>
               <div className="mt-6 flex gap-4">
                 <button
                   type="button"
@@ -340,6 +504,7 @@ export default function OnboardPage() {
             <p className="mt-6 text-sm text-red-400" role="alert">{error}</p>
           )}
 
+          {!(useWithCode && codeValidated) && (
           <div className="mt-8 flex justify-between">
             <button
               type="button"
@@ -382,6 +547,7 @@ export default function OnboardPage() {
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>

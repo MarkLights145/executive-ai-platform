@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../../components/AppLayout";
+import { ProjectLeadsSection } from "../components/ProjectLeadsSection";
 import { ProjectKanban } from "../components/ProjectKanban";
 
 export default async function ProjectDetailPage({
@@ -13,6 +14,8 @@ export default async function ProjectDetailPage({
   const { projectId } = await params;
   const { user, isProgrammer } = await getAppSession();
   const organizationId = (user as { organizationId?: string })?.organizationId;
+  const userId = (user as { id?: string })?.id;
+  const isAdmin = user?.role === "ADMIN";
   if (!organizationId) notFound();
 
   const project = await prisma.project.findFirst({
@@ -22,9 +25,14 @@ export default async function ProjectDetailPage({
         include: { assignee: { select: { id: true, name: true, email: true } } },
         orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       },
+      projectLeads: {
+        include: { user: { select: { id: true, name: true, email: true } } },
+      },
     },
   });
   if (!project) notFound();
+  const isLead = userId && project.projectLeads.some((pl) => pl.userId === userId);
+  if (!isAdmin && !isLead) notFound();
 
   const orgUsers = await prisma.user.findMany({
     where: { organizationId },
@@ -55,6 +63,17 @@ export default async function ProjectDetailPage({
               <p className="mt-1 text-neutral-600">{project.description}</p>
             )}
           </div>
+          {isAdmin && (
+            <ProjectLeadsSection
+              projectId={project.id}
+              leads={project.projectLeads.map((pl) => ({
+                id: pl.user.id,
+                name: pl.user.name,
+                email: pl.user.email,
+              }))}
+              orgUsers={orgUsers}
+            />
+          )}
           <ProjectKanban
             projectId={project.id}
             projectName={project.name}

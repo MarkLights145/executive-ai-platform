@@ -8,6 +8,8 @@ export type Task = {
   status: "todo" | "in_progress" | "done";
   description?: string;
   source?: "openclaw" | "local";
+  projectId?: string;
+  projectName?: string;
 };
 
 const COLUMNS: { id: Task["status"]; label: string }[] = [
@@ -32,11 +34,21 @@ export function KanbanBoard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const moveTask = (taskId: string, newStatus: Task["status"]) => {
+  const moveTask = async (taskId: string, newStatus: Task["status"]) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
-    // TODO: PATCH /api/tasks when backend supports updates; or sync to OpenClaw
+    if (!taskId.startsWith("local-")) {
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
+      } catch {
+        // Optimistic update kept; user can refresh if needed
+      }
+    }
   };
 
   const addTask = () => {
@@ -103,6 +115,9 @@ export function KanbanBoard() {
                       className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm"
                     >
                       <p className="font-medium text-neutral-900">{task.title}</p>
+                      {(task as Task).projectName && (
+                        <p className="mt-0.5 text-xs text-neutral-500">From: {(task as Task).projectName}</p>
+                      )}
                       {task.description && (
                         <p className="mt-1 text-sm text-neutral-500 line-clamp-2">{task.description}</p>
                       )}

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../components/AppLayout";
+import { AddUserButton } from "./components/AddUserButton";
 import { UsersList } from "./components/UsersList";
 
 export type UserWithTasks = {
@@ -99,12 +100,17 @@ export default async function UsersPage() {
     >
       <div className="min-h-full bg-gradient-to-b from-neutral-50 to-white">
         <div className="mx-auto max-w-5xl px-6 py-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
-            Organization users
-          </h1>
-          <p className="mt-1 text-neutral-600">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+                Organization users
+              </h1>
+              <p className="mt-1 text-neutral-600">
             See status, what they’re working on, and message or ping them.
-          </p>
+              </p>
+            </div>
+            <AddUserButton />
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500" /> Free

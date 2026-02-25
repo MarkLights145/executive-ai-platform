@@ -7,6 +7,8 @@ import { CreateProjectForm } from "./components/CreateProjectForm";
 export default async function ProjectsPage() {
   const { user, isProgrammer } = await getAppSession();
   const organizationId = (user as { organizationId?: string })?.organizationId;
+  const userId = (user as { id?: string })?.id;
+  const isAdmin = user?.role === "ADMIN";
   if (!organizationId) {
     return (
       <AppLayout
@@ -25,7 +27,11 @@ export default async function ProjectsPage() {
   }
 
   const projects = await prisma.project.findMany({
-    where: { organizationId },
+    where: isAdmin
+      ? { organizationId }
+      : userId
+        ? { organizationId, projectLeads: { some: { userId } } }
+        : { organizationId, id: "impossible" },
     include: {
       tasks: true,
     },
@@ -43,16 +49,18 @@ export default async function ProjectsPage() {
     >
       <div className="min-h-full bg-gradient-to-b from-neutral-50 to-white">
         <div className="mx-auto max-w-5xl px-6 py-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
                 Projects
               </h1>
               <p className="mt-1 text-neutral-600">
-                Track progress. Click a project to manage tasks in a Kanban board.
+                {isAdmin
+                  ? "Track progress. Click a project to manage tasks in a Kanban board."
+                  : "Projects you lead. Click to view tasks."}
               </p>
             </div>
-            <CreateProjectForm />
+            {isAdmin && <CreateProjectForm />}
           </div>
 
           <ul className="mt-8 space-y-4">

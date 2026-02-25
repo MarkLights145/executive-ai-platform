@@ -11,11 +11,22 @@ datasource db {
 }
 
 model Organization {
-  id        String    @id @default(cuid())
-  name      String
-  createdAt DateTime  @default(now())
-  users     User[]
-  projects  Project[]
+  id         String       @id @default(cuid())
+  name       String
+  createdAt  DateTime     @default(now())
+  users      User[]
+  projects   Project[]
+  inviteCodes InviteCode[]
+}
+
+model InviteCode {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  usedAt        DateTime?
+  createdAt      DateTime     @default(now())
 }
 
 model User {
@@ -35,19 +46,31 @@ model User {
   createdAt              DateTime      @default(now())
   rundownSessions        RundownSession[]
   emailStates            EmailState[]
-  assignedProjectTasks   ProjectTask[] @relation("TaskAssignee")
+  assignedProjectTasks   ProjectTask[]   @relation("TaskAssignee")
+  projectLeads           ProjectLead[]
 }
 
 model Project {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   description    String?
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  externalId     String?      // e.g. Square Pods project id for sync
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  externalId     String?       // e.g. Square Pods project id for sync
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   tasks          ProjectTask[]
+  projectLeads   ProjectLead[]
+}
+
+model ProjectLead {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([projectId, userId])
 }
 
 model ProjectTask {

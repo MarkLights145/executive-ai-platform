@@ -120,3 +120,40 @@ export async function setTaskStatusResponse(taskId: string, response: string) {
   });
   revalidatePath(`/app/projects/${task.projectId}`);
 }
+
+async function requireAdminOrg() {
+  const { user } = await getAppSession();
+  if (!user?.organizationId || user.role !== "ADMIN") throw new Error("Forbidden");
+  return user.organizationId;
+}
+
+export async function addProjectLead(projectId: string, userId: string) {
+  const organizationId = await requireAdminOrg();
+  await prisma.project.findFirstOrThrow({
+    where: { id: projectId, organizationId },
+  });
+  const member = await prisma.user.findFirstOrThrow({
+    where: { id: userId, organizationId },
+  });
+  await prisma.projectLead.upsert({
+    where: {
+      projectId_userId: { projectId, userId: member.id },
+    },
+    create: { projectId, userId: member.id },
+    update: {},
+  });
+  revalidatePath("/app/projects");
+  revalidatePath(`/app/projects/${projectId}`);
+}
+
+export async function removeProjectLead(projectId: string, userId: string) {
+  const organizationId = await requireAdminOrg();
+  await prisma.project.findFirstOrThrow({
+    where: { id: projectId, organizationId },
+  });
+  await prisma.projectLead.deleteMany({
+    where: { projectId, userId },
+  });
+  revalidatePath("/app/projects");
+  revalidatePath(`/app/projects/${projectId}`);
+}
