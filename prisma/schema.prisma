@@ -11,12 +11,29 @@ datasource db {
 }
 
 model Organization {
-  id         String       @id @default(cuid())
-  name       String
-  createdAt  DateTime     @default(now())
-  users      User[]
-  projects   Project[]
-  inviteCodes InviteCode[]
+  id              String          @id @default(cuid())
+  name            String
+  createdAt       DateTime       @default(now())
+  users           User[]
+  projects        Project[]
+  inviteCodes     InviteCode[]
+  agentInstances  AgentInstance[]
+}
+
+enum AgentAuthType {
+  BEARER
+}
+
+model AgentInstance {
+  id           String        @id @default(cuid())
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name         String        // e.g. "LUTN Agent", "Markos Agent"
+  baseUrl      String        // e.g. http://100.x.y.z:PORT or https://...
+  authType     AgentAuthType @default(BEARER)
+  authTokenRef String        // env key name only, not the actual token
+  enabled      Boolean       @default(true)
+  createdAt    DateTime      @default(now())
 }
 
 model InviteCode {
