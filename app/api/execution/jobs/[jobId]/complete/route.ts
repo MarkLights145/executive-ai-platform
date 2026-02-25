@@ -45,8 +45,8 @@ export async function POST(
   if (!job) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
-  if (job.status !== "RUNNING" && job.status !== "PENDING") {
-    return NextResponse.json({ error: "Job already completed" }, { status: 400 });
+  if (job.status === "DONE" || job.status === "ERROR") {
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 
   const valid = await validateAgentBearer(job.agentInstanceId, token);

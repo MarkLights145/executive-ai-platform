@@ -47,6 +47,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const LEASE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
+  const stale = new Date(Date.now() - LEASE_TIMEOUT_MS);
+  await prisma.executionJob.updateMany({
+    where: { agentInstanceId, status: "RUNNING", updatedAt: { lt: stale } },
+    data: { status: "PENDING", updatedAt: new Date() },
+  });
+
   const job = await prisma.executionJob.findFirst({
     where: { agentInstanceId, status: "PENDING" },
     orderBy: { createdAt: "asc" },
@@ -64,6 +71,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     jobId: job.id,
+    correlationId: job.id,
     orgId: job.orgId,
     actorRole: job.actorRole,
     messageText: job.messageText,
