@@ -3,6 +3,8 @@ import { authOptions } from "@/app/lib/auth";
 import Link from "next/link";
 import { ExecutionPlaneCard } from "./ExecutionPlaneCard";
 import { EscalationInbox } from "./EscalationInbox";
+import { UsageDashboard } from "./UsageDashboard";
+import { OrgKeyRef } from "./OrgKeyRef";
 
 export default async function OrgDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -60,6 +62,16 @@ export default async function OrgDashboardPage() {
             Escalations
           </h2>
           <EscalationInbox />
+        </section>
+
+        <section className="mt-8" aria-labelledby="usage-heading">
+          <h2 id="usage-heading" className="mb-4 text-lg font-semibold text-white">
+            Org key & usage
+          </h2>
+          <OrgKeyRef />
+          <div className="mt-4">
+            <UsageDashboard />
+          </div>
         </section>
 
         <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
