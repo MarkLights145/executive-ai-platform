@@ -1,10 +1,13 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import Link from "next/link";
+import { ExecutionPlaneCard } from "./ExecutionPlaneCard";
 
 export default async function OrgDashboardPage() {
   const session = await getServerSession(authOptions);
-  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+  const user = session?.user as { role?: string; organizationId?: string } | undefined;
+  const isAdmin = user?.role === "ADMIN";
+  const orgId = user?.organizationId ?? "";
 
   if (!isAdmin) {
     return (
@@ -43,6 +46,14 @@ export default async function OrgDashboardPage() {
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="text-2xl font-semibold text-white">System stats</h1>
         <p className="mt-2 text-neutral-400">System-wide metrics and analytics. Admin-only.</p>
+
+        <section className="mt-8" aria-labelledby="execution-plane-heading">
+          <h2 id="execution-plane-heading" className="mb-4 text-lg font-semibold text-white">
+            Execution Plane
+          </h2>
+          <ExecutionPlaneCard orgId={orgId} />
+        </section>
+
         <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
           <p className="text-sm text-neutral-500">Coming soon.</p>
         </div>
