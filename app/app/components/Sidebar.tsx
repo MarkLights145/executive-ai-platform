@@ -42,12 +42,20 @@ export function Sidebar({
           </Link>
         )}
         {isAdmin && (
-          <Link
-            href="/org"
-            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            Organization
-          </Link>
+          <>
+            <Link
+              href="/org"
+              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              Organization
+            </Link>
+            <Link
+              href="/app/users"
+              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              Users
+            </Link>
+          </>
         )}
         <Link
           href="/app/settings"

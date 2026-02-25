@@ -31,6 +31,7 @@ model User {
   advisoryMode           Boolean      @default(true)
   onboardingPreferences  Json?         // checkboxes: inbox triage, calendar, etc.
   featureRequest         String?
+  lastPingedAt           DateTime?     // when org admin last pinged this user
   createdAt              DateTime      @default(now())
   rundownSessions        RundownSession[]
   emailStates            EmailState[]
