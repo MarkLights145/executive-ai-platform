@@ -3,6 +3,12 @@ import { redirect, notFound } from "next/navigation";
 import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../../components/AppLayout";
+import { DeleteOrgButton } from "../components/DeleteOrgButton";
+import { DeleteUserButton } from "../components/DeleteUserButton";
+import { EditOrgForm } from "../components/EditOrgForm";
+import { EditUserForm } from "../components/EditUserForm";
+import { OrgDetailActions } from "../components/OrgDetailActions";
+import { UserCardActions } from "../components/UserCardActions";
 
 export default async function ProgrammersOrgDetailPage({
   params,
@@ -54,6 +60,7 @@ export default async function ProgrammersOrgDetailPage({
                 <dd className="text-neutral-900">{org.users.length}</dd>
               </div>
             </dl>
+            <OrgDetailActions orgId={org.id} orgName={org.name} />
           </div>
 
           {/* Users */}
@@ -70,7 +77,7 @@ export default async function ProgrammersOrgDetailPage({
                     key={u.id}
                     className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                    <UserCardActions user={{ id: u.id, name: u.name, email: u.email, role: u.role }}>
                       <div>
                         <p className="font-medium text-neutral-900">{u.name ?? "—"}</p>
                         <p className="mt-0.5 font-mono text-sm text-neutral-600">{u.email}</p>
@@ -78,7 +85,7 @@ export default async function ProgrammersOrgDetailPage({
                       <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700">
                         {u.role}
                       </span>
-                    </div>
+                    </UserCardActions>
                     <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                       <div>
                         <dt className="text-neutral-500">User ID</dt>

@@ -18,9 +18,7 @@ export function Sidebar({
   userEmail?: string | null;
 }) {
   const showProgrammers =
-    isProgrammer ||
-    (userEmail?.trim().toLowerCase() === PROGRAMMER_EMAIL_DEFAULT) ||
-    isAdmin; // show link for admins; /app/programmers still enforces programmer email
+    isProgrammer || (userEmail?.trim().toLowerCase() === PROGRAMMER_EMAIL_DEFAULT);
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50/80">

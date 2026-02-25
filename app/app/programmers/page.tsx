@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../components/AppLayout";
+import { OrgListRow } from "./components/OrgListRow";
 
 function isPersonalOrg(name: string) {
   return name.includes("(Personal)");
@@ -50,21 +50,13 @@ export default async function ProgrammersDashboardPage() {
                 </li>
               ) : (
                 organizations.map((org) => (
-                  <li key={org.id}>
-                    <Link
-                      href={`/app/programmers/${org.id}`}
-                      className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 shadow-sm transition hover:border-neutral-300 hover:shadow-md"
-                    >
-                      <div>
-                        <p className="font-medium text-neutral-900">{org.name}</p>
-                        <p className="text-sm text-neutral-500">
-                          {org.users.length} user{org.users.length !== 1 ? "s" : ""} · Created{" "}
-                          {new Date(org.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className="text-neutral-400">View →</span>
-                    </Link>
-                  </li>
+                  <OrgListRow
+                    key={org.id}
+                    orgId={org.id}
+                    orgName={org.name}
+                    userCount={org.users.length}
+                    createdAt={org.createdAt}
+                  />
                 ))
               )}
             </ul>
@@ -82,21 +74,13 @@ export default async function ProgrammersDashboardPage() {
                 </li>
               ) : (
                 individuals.map((org) => (
-                  <li key={org.id}>
-                    <Link
-                      href={`/app/programmers/${org.id}`}
-                      className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 shadow-sm transition hover:border-neutral-300 hover:shadow-md"
-                    >
-                      <div>
-                        <p className="font-medium text-neutral-900">{org.name}</p>
-                        <p className="text-sm text-neutral-500">
-                          {org.users.length} user{org.users.length !== 1 ? "s" : ""} · Created{" "}
-                          {new Date(org.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className="text-neutral-400">View →</span>
-                    </Link>
-                  </li>
+                  <OrgListRow
+                    key={org.id}
+                    orgId={org.id}
+                    orgName={org.name}
+                    userCount={org.users.length}
+                    createdAt={org.createdAt}
+                  />
                 ))
               )}
             </ul>
