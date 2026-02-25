@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { isAllowedUserMessage } from "@/app/lib/rolePolicy";
+import { sendEscalationNotification } from "@/app/lib/email";
 
 type CreateJobBody = {
   orgId: string;
@@ -56,6 +57,16 @@ export async function POST(req: Request) {
         },
         select: { id: true },
       });
+      const admins = await prisma.user.findMany({
+        where: { organizationId: user.organizationId, role: "ADMIN" },
+        select: { email: true },
+      });
+      const toEmails = admins.map((u) => u.email).filter((e): e is string => !!e?.trim());
+      sendEscalationNotification(toEmails, {
+        escalationId: escalation.id,
+        messageText,
+        reason: "OFF_SCRIPT",
+      }).catch(() => {});
       return NextResponse.json(
         { error: "Message escalated", escalationId: escalation.id },
         { status: 403 }

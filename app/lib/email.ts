@@ -96,3 +96,37 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+/**
+ * Send escalation notification to org admins. Fire-and-forget; does not throw.
+ * Requires RESEND_API_KEY. toEmails should be admin/lead addresses for the org.
+ */
+export async function sendEscalationNotification(
+  toEmails: string[],
+  opts: { escalationId: string; messageText: string; reason?: string }
+): Promise<void> {
+  const client = getClient();
+  if (!client || toEmails.length === 0) return;
+
+  const baseUrl = (process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
+  const inboxUrl = baseUrl ? `${baseUrl}/org#escalations` : "";
+
+  const subject = "Executive AI: user message escalated";
+  const html = `
+    <p>A user message was escalated (off-script).</p>
+    <p><strong>Message:</strong> ${escapeHtml((opts.messageText || "").slice(0, 500))}</p>
+    <p><strong>Reason:</strong> ${escapeHtml(opts.reason || "OFF_SCRIPT")}</p>
+    ${inboxUrl ? `<p><a href="${escapeHtml(inboxUrl)}">View escalation inbox</a></p>` : ""}
+  `;
+
+  try {
+    await client.emails.send({
+      from: fromEmail,
+      to: toEmails,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error("Escalation email failed", err instanceof Error ? err.message : String(err));
+  }
+}

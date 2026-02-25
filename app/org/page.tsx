@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import Link from "next/link";
 import { ExecutionPlaneCard } from "./ExecutionPlaneCard";
+import { EscalationInbox } from "./EscalationInbox";
 
 export default async function OrgDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -52,6 +53,13 @@ export default async function OrgDashboardPage() {
             Execution Plane
           </h2>
           <ExecutionPlaneCard orgId={orgId} />
+        </section>
+
+        <section className="mt-8" aria-labelledby="escalations-heading">
+          <h2 id="escalations-heading" className="mb-4 text-lg font-semibold text-white">
+            Escalations
+          </h2>
+          <EscalationInbox />
         </section>
 
         <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
