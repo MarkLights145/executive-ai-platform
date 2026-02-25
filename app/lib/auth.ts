@@ -67,8 +67,10 @@ export const authOptions: NextAuthOptions = {
 };
 
 export type AppSessionUser = {
+  id?: string;
   email?: string | null;
   role?: string;
+  organizationId?: string;
   organizationName?: string | null;
 };
 
