@@ -25,47 +25,6 @@ type PollBody = { agentInstanceId?: string };
  * Body: { agentInstanceId }. Returns job payload or 204 if none.
  */
 export async function POST(req: Request) {
-  const token = getBearerToken(req);
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: PollBody;
-  try {
-    body = (await req.json()) as PollBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const agentInstanceId = body.agentInstanceId?.trim();
-  if (!agentInstanceId) {
-    return NextResponse.json({ error: "agentInstanceId required" }, { status: 400 });
-  }
-
-  const valid = await validateAgentBearer(agentInstanceId, token);
-  if (!valid) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const job = await prisma.executionJob.findFirst({
-    where: { agentInstanceId, status: "PENDING" },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, orgId: true, actorRole: true, messageText: true },
-  });
-
-  if (!job) {
-    return new NextResponse(null, { status: 204 });
-  }
-
-  await prisma.executionJob.update({
-    where: { id: job.id },
-    data: { status: "RUNNING", updatedAt: new Date() },
-  });
-
-  return NextResponse.json({
-    jobId: job.id,
-    orgId: job.orgId,
-    actorRole: job.actorRole,
-    messageText: job.messageText,
-  });
+  console.log("[poll] POST handler hit");
+  return new Response(JSON.stringify({ ok: true }), { status: 200 });
 }
