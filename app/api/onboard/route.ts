@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/app/lib/db";
+import { sendWelcomeEmail } from "@/app/lib/email";
 
 const MIN_PASSWORD_LENGTH = 10;
 
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
           data: { usedAt: new Date() },
         });
       });
+      await sendWelcomeEmail(name.trim(), normalizedEmail);
       return NextResponse.json({ ok: true });
     }
 
@@ -102,6 +104,7 @@ export async function POST(req: Request) {
       });
     });
 
+    await sendWelcomeEmail(name.trim(), normalizedEmail);
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
