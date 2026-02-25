@@ -30,13 +30,13 @@ export function Sidebar({
   const navItems = isAdmin ? navItemsAll : navItemsUser;
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50/80">
+    <aside className="flex w-56 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50/80 dark:border-neutral-700 dark:bg-neutral-800/80">
       <nav className="flex flex-col gap-0.5 p-3">
         {navItems.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
-            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
           >
             {label}
           </Link>
@@ -44,7 +44,7 @@ export function Sidebar({
         {showProgrammers && (
           <Link
             href="/app/programmers"
-            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
           >
             Programmers
           </Link>
@@ -53,13 +53,13 @@ export function Sidebar({
           <>
             <Link
               href="/org"
-              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
             >
               Organization
             </Link>
             <Link
               href="/app/users"
-              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+              className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
             >
               Users
             </Link>
@@ -67,7 +67,7 @@ export function Sidebar({
         )}
         <Link
           href="/app/settings"
-          className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+          className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
         >
           Settings
         </Link>

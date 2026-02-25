@@ -15,6 +15,29 @@ const COLUMNS: { id: "todo" | "in_progress" | "done"; label: string }[] = [
   { id: "done", label: "Done" },
 ];
 
+type ColId = "todo" | "in_progress" | "done";
+
+const COLUMN_STYLES: Record<ColId, { bg: string; border: string; badge: string; heading: string }> = {
+  todo: {
+    bg: "bg-blue-50/80 dark:bg-blue-950/40",
+    border: "border-blue-200 dark:border-blue-800",
+    badge: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
+    heading: "text-blue-800 dark:text-blue-200",
+  },
+  in_progress: {
+    bg: "bg-amber-50/80 dark:bg-amber-950/40",
+    border: "border-amber-200 dark:border-amber-800",
+    badge: "bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200",
+    heading: "text-amber-800 dark:text-amber-200",
+  },
+  done: {
+    bg: "bg-emerald-50/80 dark:bg-emerald-950/40",
+    border: "border-emerald-200 dark:border-emerald-800",
+    badge: "bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200",
+    heading: "text-emerald-800 dark:text-emerald-200",
+  },
+};
+
 export type ProjectTaskForKanban = {
   id: string;
   title: string;
@@ -118,42 +141,42 @@ export function ProjectKanban({
   return (
     <div className="mt-8 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold text-neutral-900">Tasks</h2>
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Tasks</h2>
         {!addingTask ? (
           <button
             type="button"
             onClick={() => setAddingTask(true)}
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+            className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
           >
             + Add task
           </button>
         ) : (
           <form onSubmit={handleAddTask} className="flex flex-wrap items-end gap-2">
-            <input
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Task title"
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
-            />
+<input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Task title"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
+          />
             <input
               type="text"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               placeholder="Details (optional)"
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              className="rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
             />
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
             >
               {isPending ? "Adding…" : "Add"}
             </button>
             <button
               type="button"
               onClick={() => { setAddingTask(false); setNewTitle(""); setNewDescription(""); }}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700"
+              className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 dark:border-neutral-600 dark:text-neutral-300"
             >
               Cancel
             </button>
@@ -167,22 +190,24 @@ export function ProjectKanban({
           return (
             <div
               key={col.id}
-              className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50/50 p-4"
+              className={`flex flex-col rounded-2xl border p-4 ${COLUMN_STYLES[col.id].border} ${COLUMN_STYLES[col.id].bg}`}
             >
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-neutral-700">{col.label}</h3>
-                <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                <h3 className={`text-sm font-semibold ${COLUMN_STYLES[col.id].heading}`}>{col.label}</h3>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${COLUMN_STYLES[col.id].badge}`}>
                   {colTasks.length}
                 </span>
               </div>
               <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
                 {colTasks.length === 0 ? (
-                  <p className="py-6 text-center text-sm text-neutral-400">No tasks</p>
+                  <p className="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">No tasks</p>
                 ) : (
                   colTasks.map((task) => (
                     <TaskCard
                       key={task.id}
                       task={task}
+                      currentColumnId={col.id}
+                      columns={COLUMNS}
                       orgUsers={orgUsers}
                       isPending={isPending}
                       editingTaskId={editingTaskId}
@@ -198,17 +223,7 @@ export function ProjectKanban({
                       responseText={responseText}
                       setResponseText={setResponseText}
                       openResponseForm={() => openResponseForm(task)}
-                      onMoveLeft={
-                        col.id !== "todo"
-                          ? () => moveTask(task.id, col.id === "in_progress" ? "todo" : "in_progress")
-                          : undefined
-                      }
-                      onMoveRight={
-                        col.id !== "done"
-                          ? () =>
-                              moveTask(task.id, col.id === "todo" ? "in_progress" : "done")
-                          : undefined
-                      }
+                      onMove={(newStatus) => moveTask(task.id, newStatus)}
                       onAssign={(assigneeId) => handleAssign(task.id, assigneeId)}
                       onPing={() => handlePing(task.id)}
                       onSetResponse={(e) => handleSetResponse(e, task.id)}
@@ -226,6 +241,8 @@ export function ProjectKanban({
 
 function TaskCard({
   task,
+  currentColumnId,
+  columns,
   orgUsers,
   isPending,
   editingTaskId,
@@ -241,13 +258,14 @@ function TaskCard({
   responseText,
   setResponseText,
   openResponseForm,
-  onMoveLeft,
-  onMoveRight,
+  onMove,
   onAssign,
   onPing,
   onSetResponse,
 }: {
   task: ProjectTaskForKanban;
+  currentColumnId: ColId;
+  columns: { id: ColId; label: string }[];
   orgUsers: OrgUser[];
   isPending: boolean;
   editingTaskId: string | null;
@@ -263,8 +281,7 @@ function TaskCard({
   responseText: string;
   setResponseText: (s: string) => void;
   openResponseForm: () => void;
-  onMoveLeft?: () => void;
-  onMoveRight?: () => void;
+  onMove: (newStatus: ColId) => void;
   onAssign: (assigneeId: string | null) => void;
   onPing: () => void;
   onSetResponse: (e: React.FormEvent) => void;
@@ -273,7 +290,7 @@ function TaskCard({
   const isResponding = responseTaskId === task.id;
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           {isEditing ? (
@@ -282,79 +299,75 @@ function TaskCard({
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full rounded border border-neutral-200 px-2 py-1 text-sm font-medium"
+                className="w-full rounded border border-neutral-200 px-2 py-1 text-sm font-medium dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
                 placeholder="Title"
               />
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={2}
-                className="w-full rounded border border-neutral-200 px-2 py-1 text-sm"
+                className="w-full rounded border border-neutral-200 px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
                 placeholder="Details (optional)"
               />
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded bg-neutral-800 px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
+                  className="rounded bg-neutral-800 px-2 py-1 text-xs font-medium text-white disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
                 >
                   Save
                 </button>
-                <button type="button" onClick={onCancelEdit} className="rounded border border-neutral-200 px-2 py-1 text-xs font-medium">
+                <button type="button" onClick={onCancelEdit} className="rounded border border-neutral-200 px-2 py-1 text-xs font-medium dark:border-neutral-600 dark:text-neutral-300">
                   Cancel
                 </button>
               </div>
             </form>
           ) : (
             <>
-              <p className="font-medium text-neutral-900">{task.title}</p>
+              <p className="font-medium text-neutral-900 dark:text-neutral-100">{task.title}</p>
               {task.description && (
-                <p className="mt-1 text-sm text-neutral-500 line-clamp-2">{task.description}</p>
+                <p className="mt-1 text-sm text-neutral-500 line-clamp-2 dark:text-neutral-400">{task.description}</p>
               )}
               <button
                 type="button"
                 onClick={openEdit}
-                className="mt-1 text-xs font-medium text-neutral-500 hover:text-neutral-700"
+                className="mt-1 text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
               >
                 Edit details
               </button>
             </>
           )}
         </div>
-        {!isEditing && (
-        <div className="flex shrink-0 gap-1">
-          {onMoveLeft && (
-            <button
-              type="button"
-              onClick={onMoveLeft}
-              disabled={isPending}
-              className="text-xs font-medium text-neutral-500 hover:text-neutral-700 disabled:opacity-50"
-            >
-              ←
-            </button>
-          )}
-          {onMoveRight && (
-            <button
-              type="button"
-              onClick={onMoveRight}
-              disabled={isPending}
-              className="text-xs font-medium text-neutral-500 hover:text-neutral-700 disabled:opacity-50"
-            >
-              →
-            </button>
-          )}
-        </div>
-        )}
       </div>
+      {!isEditing && (
+        <div className="mt-3">
+          <select
+            value=""
+            onChange={(e) => {
+              const v = e.target.value as ColId;
+              if (v) onMove(v);
+              e.target.value = "";
+            }}
+            disabled={isPending}
+            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 py-2 pl-3 pr-8 text-sm font-medium text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+            aria-label="Move task to column"
+          >
+            <option value="">Move to…</option>
+            {columns.filter((c) => c.id !== currentColumnId).map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Assignee */}
       <div className="mt-3">
-        <label className="block text-xs font-medium text-neutral-500">Assigned to</label>
+        <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400">Assigned to</label>
         <select
           value={task.assigneeId ?? ""}
           onChange={(e) => onAssign(e.target.value || null)}
           disabled={isPending}
-          className="mt-0.5 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-sm"
+          className="mt-0.5 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
         >
           <option value="">Unassigned</option>
           {orgUsers.map((u) => (
@@ -371,21 +384,21 @@ function TaskCard({
           type="button"
           onClick={onPing}
           disabled={isPending}
-          className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+          className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200 dark:hover:bg-amber-900/50"
         >
           Ping for status
         </button>
         {task.lastPingedAt && (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
             Pinged {new Date(task.lastPingedAt).toLocaleString()}
           </p>
         )}
         {task.lastStatusResponse && (
-          <div className="rounded bg-neutral-50 p-2 text-xs">
-            <p className="font-medium text-neutral-600">Last response:</p>
-            <p className="mt-0.5 text-neutral-700">{task.lastStatusResponse}</p>
+          <div className="rounded bg-neutral-50 p-2 text-xs dark:bg-neutral-700/50">
+            <p className="font-medium text-neutral-600 dark:text-neutral-300">Last response:</p>
+            <p className="mt-0.5 text-neutral-700 dark:text-neutral-200">{task.lastStatusResponse}</p>
             {task.lastStatusAt && (
-              <p className="mt-1 text-neutral-500">
+              <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                 {new Date(task.lastStatusAt).toLocaleString()}
               </p>
             )}
@@ -395,7 +408,7 @@ function TaskCard({
           <button
             type="button"
             onClick={openResponseForm}
-            className="text-xs font-medium text-neutral-500 hover:text-neutral-700"
+            className="text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
           >
             {task.lastStatusResponse ? "Update status response" : "Add status response"}
           </button>
@@ -406,20 +419,20 @@ function TaskCard({
               onChange={(e) => setResponseText(e.target.value)}
               placeholder="Status update from assignee..."
               rows={2}
-              className="w-full rounded border border-neutral-200 px-2 py-1.5 text-sm"
+              className="w-full rounded border border-neutral-200 px-2 py-1.5 text-sm dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100"
             />
             <div className="mt-1 flex gap-2">
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded bg-neutral-800 px-2 py-1 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                className="rounded bg-neutral-800 px-2 py-1 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={() => { setResponseTaskId(null); setResponseText(""); }}
-                className="rounded border border-neutral-200 px-2 py-1 text-xs font-medium text-neutral-600"
+                className="rounded border border-neutral-200 px-2 py-1 text-xs font-medium text-neutral-600 dark:border-neutral-600 dark:text-neutral-300"
               >
                 Cancel
               </button>

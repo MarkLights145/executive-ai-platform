@@ -20,7 +20,7 @@ export function AppLayout({
   const isAdmin = user.role === "ADMIN";
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-100">
+    <div className="flex min-h-screen flex-col bg-neutral-100 dark:bg-neutral-900">
       <Topbar email={user.email} />
       <div className="flex flex-1">
         <Sidebar isAdmin={isAdmin} isProgrammer={isProgrammer} userEmail={user.email} />
