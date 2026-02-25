@@ -19,8 +19,11 @@ function generateCode(): string {
 
 /**
  * POST /api/invite-codes — Create invite code (admin only)
+ * Optional query param: ?role=ADMIN to create an admin invite.
  */
-export async function POST() {
+export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const requestedRole = searchParams.get("role")?.trim().toUpperCase() === "ADMIN" ? "ADMIN" : "USER";
   const session = await getServerSession(authOptions);
   const user = session?.user as { role?: string; organizationId?: string } | undefined;
   if (!user?.organizationId || user.role !== "ADMIN") {
@@ -41,6 +44,7 @@ export async function POST() {
   const invite = await prisma.inviteCode.create({
     data: {
       code,
+      role: requestedRole,
       organizationId: user.organizationId,
       expiresAt,
     },
@@ -49,6 +53,7 @@ export async function POST() {
 
   return NextResponse.json({
     code: invite.code,
+    role: invite.role,
     expiresAt: invite.expiresAt.toISOString(),
     organizationName: invite.organization.name,
   });

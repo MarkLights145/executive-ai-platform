@@ -55,7 +55,7 @@ export function Sidebar({
               href="/org"
               className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
             >
-              Organization
+              System stats
             </Link>
             <Link
               href="/app/users"

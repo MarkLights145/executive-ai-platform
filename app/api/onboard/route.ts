@@ -63,7 +63,7 @@ export async function POST(req: Request) {
             email: normalizedEmail,
             name: name.trim(),
             passwordHash,
-            role: "USER",
+            role: invite.role ?? "USER",
             organizationId: invite.organizationId,
             advisoryMode: true,
             telegramUserId: telegramUsername?.trim() || null,

@@ -10,7 +10,7 @@ export default async function OrgDashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-4">
         <div className="text-center">
-          <p className="text-neutral-400">You don’t have access to the organization dashboard.</p>
+          <p className="text-neutral-400">You don’t have access to the system stats dashboard.</p>
           <Link href="/app" className="mt-4 inline-block text-amber-400 hover:underline">
             Back to dashboard
           </Link>
@@ -41,12 +41,10 @@ export default async function OrgDashboardPage() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-12">
-        <h1 className="text-2xl font-semibold text-white">Organization</h1>
-        <p className="mt-2 text-neutral-400">
-          Manage your organization and members. Admin-only.
-        </p>
+        <h1 className="text-2xl font-semibold text-white">System stats</h1>
+        <p className="mt-2 text-neutral-400">System-wide metrics and analytics. Admin-only.</p>
         <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
-          <p className="text-sm text-neutral-500">Organization settings and member list will appear here.</p>
+          <p className="text-sm text-neutral-500">Coming soon.</p>
         </div>
       </main>
     </div>

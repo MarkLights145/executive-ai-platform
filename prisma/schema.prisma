@@ -22,6 +22,7 @@ model Organization {
 model InviteCode {
   id             String       @id @default(cuid())
   code           String       @unique
+  role           String       @default("USER") // USER or ADMIN
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   expiresAt      DateTime

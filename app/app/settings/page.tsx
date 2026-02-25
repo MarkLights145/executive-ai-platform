@@ -1,6 +1,7 @@
 import { getAppSession } from "@/app/lib/auth";
 import { AppLayout } from "../components/AppLayout";
 import { ThemeToggle } from "./ThemeToggle";
+import { TelegramConfigSection } from "./TelegramConfigSection";
 
 export default async function SettingsPage() {
   const { user, isProgrammer } = await getAppSession();
@@ -20,6 +21,7 @@ export default async function SettingsPage() {
         </h1>
         <div className="mt-6 space-y-6">
           <ThemeToggle />
+          <TelegramConfigSection />
         </div>
       </div>
     </AppLayout>

@@ -3,6 +3,7 @@ import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../components/AppLayout";
 import { AddUserButton } from "./components/AddUserButton";
+import { AddAdminButton } from "./components/AddAdminButton";
 import { UsersList } from "./components/UsersList";
 
 export type UserWithTasks = {
@@ -109,7 +110,10 @@ export default async function UsersPage() {
             See status, what they’re working on, and message or ping them.
               </p>
             </div>
-            <AddUserButton />
+            <div className="flex flex-wrap gap-2">
+              <AddUserButton />
+              <AddAdminButton />
+            </div>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
             <span className="flex items-center gap-1.5">
