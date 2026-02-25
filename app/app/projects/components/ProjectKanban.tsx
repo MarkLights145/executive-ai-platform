@@ -404,7 +404,7 @@ function TaskCard({
             <textarea
               value={responseText}
               onChange={(e) => setResponseText(e.target.value)}
-              placeholder="Status update from assignee…”
+              placeholder="Status update from assignee..."
               rows={2}
               className="w-full rounded border border-neutral-200 px-2 py-1.5 text-sm"
             />
