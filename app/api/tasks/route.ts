@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
+import { requireAuth, auditLog } from "@/app/lib/api-auth";
 
 export type Task = {
   id: string;
@@ -14,19 +13,21 @@ export type Task = {
 };
 
 /**
- * GET /api/tasks
- * Returns tasks assigned to the current user (ProjectTask with assigneeId),
- * with project name. Admins see all org tasks; USER role sees only their assigned tasks.
+ * GET /api/tasks — Tasks scoped by auth.orgId (user: assigned to them; service_account: all org tasks).
  */
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as { id?: string; role?: string; organizationId?: string } | undefined;
-  if (!user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(req: Request) {
+  const auth = await requireAuth(req);
+  if (auth instanceof Response) return auth;
+
+  const where: { project: { organizationId: string }; assigneeId?: string } = {
+    project: { organizationId: auth.orgId },
+  };
+  if (auth.principalType === "user") {
+    where.assigneeId = auth.principalId;
   }
 
   const assigned = await prisma.projectTask.findMany({
-    where: { assigneeId: user.id },
+    where,
     include: { project: { select: { id: true, name: true } } },
     orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
   });
@@ -40,6 +41,15 @@ export async function GET() {
     projectId: t.project.id,
     projectName: t.project.name,
   }));
+
+  await auditLog({
+    orgId: auth.orgId,
+    principalId: auth.principalId,
+    principalType: auth.principalType,
+    route: "/api/tasks",
+    method: "GET",
+    status: 200,
+  });
 
   return NextResponse.json({ tasks });
 }

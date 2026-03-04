@@ -4,13 +4,29 @@ import { revalidatePath } from "next/cache";
 import { getAppSession } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 
+type ProjectTimelineInput = {
+  projectType?: string;
+  eventStart?: string | null;
+  eventEnd?: string | null;
+  loadInStart?: string | null;
+  loadInEnd?: string | null;
+  loadOutStart?: string | null;
+  loadOutEnd?: string | null;
+  truckLoad?: string | null;
+  truckReturn?: string | null;
+};
+
 async function requireOrg() {
   const { user } = await getAppSession();
   if (!user?.organizationId) throw new Error("Unauthorized");
   return user.organizationId;
 }
 
-export async function createProject(name: string, description?: string) {
+export async function createProject(
+  name: string,
+  description?: string,
+  timeline?: ProjectTimelineInput
+) {
   const organizationId = await requireOrg();
   if (!name?.trim()) throw new Error("Project name is required");
   const project = await prisma.project.create({
@@ -18,13 +34,37 @@ export async function createProject(name: string, description?: string) {
       name: name.trim(),
       description: description?.trim() || null,
       organizationId,
+      projectType: timeline?.projectType?.trim() || null,
+      eventStart: timeline?.eventStart ? new Date(timeline.eventStart) : undefined,
+      eventEnd: timeline?.eventEnd ? new Date(timeline.eventEnd) : undefined,
+      loadInStart: timeline?.loadInStart ? new Date(timeline.loadInStart) : undefined,
+      loadInEnd: timeline?.loadInEnd ? new Date(timeline.loadInEnd) : undefined,
+      loadOutStart: timeline?.loadOutStart ? new Date(timeline.loadOutStart) : undefined,
+      loadOutEnd: timeline?.loadOutEnd ? new Date(timeline.loadOutEnd) : undefined,
+      truckLoad: timeline?.truckLoad ? new Date(timeline.truckLoad) : undefined,
+      truckReturn: timeline?.truckReturn ? new Date(timeline.truckReturn) : undefined,
     },
   });
   revalidatePath("/app/projects");
   return project.id;
 }
 
-export async function updateProject(projectId: string, data: { name?: string; description?: string }) {
+export async function updateProject(
+  projectId: string,
+  data: {
+    name?: string;
+    description?: string;
+    projectType?: string | null;
+    eventStart?: string | null;
+    eventEnd?: string | null;
+    loadInStart?: string | null;
+    loadInEnd?: string | null;
+    loadOutStart?: string | null;
+    loadOutEnd?: string | null;
+    truckLoad?: string | null;
+    truckReturn?: string | null;
+  }
+) {
   const organizationId = await requireOrg();
   await prisma.project.findFirstOrThrow({
     where: { id: projectId, organizationId },
@@ -34,6 +74,33 @@ export async function updateProject(projectId: string, data: { name?: string; de
     data: {
       ...(data.name !== undefined && { name: data.name.trim() }),
       ...(data.description !== undefined && { description: data.description?.trim() || null }),
+      ...(data.projectType !== undefined && {
+        projectType: data.projectType?.trim() || null,
+      }),
+      ...(data.eventStart !== undefined && {
+        eventStart: data.eventStart ? new Date(data.eventStart) : null,
+      }),
+      ...(data.eventEnd !== undefined && {
+        eventEnd: data.eventEnd ? new Date(data.eventEnd) : null,
+      }),
+      ...(data.loadInStart !== undefined && {
+        loadInStart: data.loadInStart ? new Date(data.loadInStart) : null,
+      }),
+      ...(data.loadInEnd !== undefined && {
+        loadInEnd: data.loadInEnd ? new Date(data.loadInEnd) : null,
+      }),
+      ...(data.loadOutStart !== undefined && {
+        loadOutStart: data.loadOutStart ? new Date(data.loadOutStart) : null,
+      }),
+      ...(data.loadOutEnd !== undefined && {
+        loadOutEnd: data.loadOutEnd ? new Date(data.loadOutEnd) : null,
+      }),
+      ...(data.truckLoad !== undefined && {
+        truckLoad: data.truckLoad ? new Date(data.truckLoad) : null,
+      }),
+      ...(data.truckReturn !== undefined && {
+        truckReturn: data.truckReturn ? new Date(data.truckReturn) : null,
+      }),
     },
   });
   revalidatePath("/app/projects");

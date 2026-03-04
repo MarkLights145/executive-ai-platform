@@ -11,17 +11,42 @@ datasource db {
 }
 
 model Organization {
-  id              String          @id @default(cuid())
-  name            String
-  openaiKeyRef    String?         // env var name only, never the key value
-  createdAt       DateTime       @default(now())
-  users           User[]
-  projects        Project[]
-  inviteCodes     InviteCode[]
-  agentInstances  AgentInstance[]
-  executionJobs   ExecutionJob[]
-  escalations     Escalation[]
-  usageLogs       UsageLog[]
+  id               String          @id @default(cuid())
+  name             String
+  openaiKeyRef     String?         // env var name only, never the key value
+  createdAt        DateTime       @default(now())
+  users            User[]
+  projects         Project[]
+  inviteCodes      InviteCode[]
+  agentInstances   AgentInstance[]
+  executionJobs    ExecutionJob[]
+  escalations      Escalation[]
+  usageLogs        UsageLog[]
+  serviceAccounts  ServiceAccount[]
+  auditLogs        AuditLog[]
+}
+
+model ServiceAccount {
+  id         String   @id @default(cuid())
+  orgId      String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name       String
+  tokenHash  String   // SHA-256 of token; never store plaintext
+  scopes     Json     // string[] e.g. ["tasks:read", "tasks:write"]
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  principalId  String   // user id or service account id
+  principalType String  // "user" | "service_account"
+  route        String
+  method       String
+  status       Int
+  createdAt    DateTime @default(now())
 }
 
 model UsageLog {
@@ -93,6 +118,7 @@ model User {
   role                   String        @default("USER")
   organizationId         String
   organization           Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  telegramUsername       String?
   telegramUserId         String?
   microsoftConnected     Boolean       @default(false)
   advisoryMode           Boolean      @default(true)
@@ -110,6 +136,15 @@ model Project {
   id             String        @id @default(cuid())
   name           String
   description    String?
+  projectType    String?
+  eventStart     DateTime?
+  eventEnd       DateTime?
+  loadInStart    DateTime?
+  loadInEnd      DateTime?
+  loadOutStart   DateTime?
+  loadOutEnd     DateTime?
+  truckLoad      DateTime?
+  truckReturn    DateTime?
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   externalId     String?       // e.g. Square Pods project id for sync

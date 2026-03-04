@@ -5,6 +5,8 @@ import { prisma } from "@/app/lib/db";
 import { AppLayout } from "../../components/AppLayout";
 import { ProjectLeadsSection } from "../components/ProjectLeadsSection";
 import { ProjectKanban } from "../components/ProjectKanban";
+import { ProjectTimeline } from "../components/ProjectTimeline";
+import { ProjectDetailsForm } from "../components/ProjectDetailsForm";
 
 export default async function ProjectDetailPage({
   params,
@@ -62,7 +64,37 @@ export default async function ProjectDetailPage({
             {project.description && (
               <p className="mt-1 text-neutral-600">{project.description}</p>
             )}
+            <ProjectDetailsForm
+              projectId={project.id}
+              initialName={project.name}
+              initialDescription={project.description}
+              projectType={project.projectType}
+              dates={{
+                eventStart: project.eventStart?.toISOString() ?? null,
+                eventEnd: project.eventEnd?.toISOString() ?? null,
+                loadInStart: project.loadInStart?.toISOString() ?? null,
+                loadInEnd: project.loadInEnd?.toISOString() ?? null,
+                loadOutStart: project.loadOutStart?.toISOString() ?? null,
+                loadOutEnd: project.loadOutEnd?.toISOString() ?? null,
+                truckLoad: project.truckLoad?.toISOString() ?? null,
+                truckReturn: project.truckReturn?.toISOString() ?? null,
+              }}
+            />
           </div>
+          <ProjectTimeline
+            projectName={project.name}
+            projectType={project.projectType}
+            dates={{
+              eventStart: project.eventStart?.toISOString() ?? null,
+              eventEnd: project.eventEnd?.toISOString() ?? null,
+              loadInStart: project.loadInStart?.toISOString() ?? null,
+              loadInEnd: project.loadInEnd?.toISOString() ?? null,
+              loadOutStart: project.loadOutStart?.toISOString() ?? null,
+              loadOutEnd: project.loadOutEnd?.toISOString() ?? null,
+              truckLoad: project.truckLoad?.toISOString() ?? null,
+              truckReturn: project.truckReturn?.toISOString() ?? null,
+            }}
+          />
           {isAdmin && (
             <ProjectLeadsSection
               projectId={project.id}
